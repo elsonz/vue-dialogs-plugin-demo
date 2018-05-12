@@ -1,6 +1,6 @@
 {
-    "name": "vue-plugins-guide",
-    "description": "vue弹窗插件开发",
+    "name": "vue-dialogs-plugin-demo",
+    "description": "vue弹窗插件开发demo",
     "version": "1.0.0",
     "author": "elson",
     "license": "MIT",
