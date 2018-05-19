@@ -3,12 +3,13 @@ import Dialog from '../components/Dialogs.vue';
 
 const dialogs = {
     vm: null, // 保存当前实例
+    queue: [],
     create(componentType = 'alert', Vue, installOptions, opt) {
-        // 多次点击按钮时，销毁之前的弹窗
+        // OUTDATE: 多次点击按钮时，销毁之前的弹窗
+        // UPDATE: 改为：当前弹窗未关闭再次调用时，保存到栈
         if (this.vm) {
-            document.body.removeChild(this.vm.$el);
-            this.vm.$destroy();
-            this.vm = null;
+            this.queue.push({type: componentType == 'confirm' ? '$confirm' : '$alert', opt});
+            return;
         }
 
         let btnTxt = ['确认'];
@@ -42,8 +43,13 @@ const dialogs = {
             setTimeout(() => {
                 document.body.removeChild(vm.$el);
                 vm.$destroy();
-                this.vm = null;
                 typeof opt.cb == 'function' && opt.cb((componentType == 'confirm' && btnType == 1) ? 1 : 0);
+                this.vm = null;
+                // 查看栈中有无未执行的弹窗
+                if (this.queue.length > 0) {
+                    let cur = this.queue.shift();
+                    Vue.prototype[cur.type](cur.opt);
+                }
             }, 400); // 缓出动画为300ms，因此延迟400ms后再销毁实例
         });
     },
@@ -144,7 +150,6 @@ const dialogs = {
             vm.show = true;
             vm.$on('close', (btnType) => {
                 setTimeout(() => {
-                    // 不能单单document.body.removeChild(this.el);移除，蒙层还存在
                     document.body.removeChild(this.vm.$el);
                     this.vm.$destroy();
                     this.vm = null;
